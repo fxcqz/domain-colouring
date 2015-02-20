@@ -8,6 +8,12 @@ import time
 # h <- (arg(z)/2pi+1) % 1
 # s <- [0, 1]
 # v <- g(|z|)
+STRINGS = {"no_z_in_func": "PARSER ERROR: No Z-Value present in user defined function!",
+           "imbalanced_brackets": "PARSER ERROR: Bracket mismatch in user defined function!"}
+
+def err(msg):
+    print msg
+    exit()
 
 def compl_h(z):
     h = numpy.angle(z) / (2 * numpy.pi) + 1
@@ -108,8 +114,9 @@ def bracket_checker(s, offset):
 
 
 def str_to_np(s):
-    repl = {"ctan": [r"ctan\((.{"+str(bracket_checker(s, s.find("ctan")+4))+"})", r"(1.0 / numpy.tan(\1)"]}
-    for key, pattern in repl.iteritems():
+    repl = [[r"ctan\((.{"+str(bracket_checker(s, s.find("ctan")+4))+"})", r"(1.0 / numpy.tan(\1)"],
+            [ r"pi", r"numpy.pi"]]
+    for pattern in repl:
         s = regex.sub(pattern[0], pattern[1], s)
     return s
 
@@ -117,15 +124,20 @@ def str_to_np(s):
 def function_parser(func):
     ret = lambda z: z
     if func:
-        blocks = regex.findall(r"([a-z]+\(?)?([\/\-\+])?([0-9]+[\.]?[0-9]*?i?)?([\(]+)?(([\-\+])?([0-9]+([\.][0-9]+)?i?)?[z|0-9][\.]?[0-9]*?i?([\^][0-9]+[\.]?[0-9]*?i?)?)([/)]+)?", func)
-        if blocks:
-            blocks = [''.join(b[:8]+b[9:]) for b in blocks]
-            blocks = regex.sub(r"([0-9]+[\.]?[0-9]*)([a-z])", r"\1*\2", ''.join(blocks))
-            blocks = regex.sub(r"\^", "**", blocks)
-            blocks = regex.sub(r"([0-9])i", r"\1j", blocks)
-            blocks = str_to_np(blocks)
-            print blocks
-            ret = lambda z: eval(''.join(blocks))
+        if '(' in func or ')' in func:
+            if bracket_checker(func, 0) == -1:
+                err(STRINGS["imbalanced_brackets"])
+        if 'z' in func:
+            blocks = regex.findall(r"([a-z]+\(?)?([\/\-\+])?([0-9]+[\.]?[0-9]*?i?)?([\(]+)?(([\-\+])?([0-9]+([\.][0-9]+)?i?)?[z|0-9][\.]?[0-9]*?i?([\^][0-9]+[\.]?[0-9]*?i?)?)([/)]+)?", func)
+            if blocks:
+                blocks = [''.join(b[:8]+b[9:]) for b in blocks]
+                blocks = regex.sub(r"([0-9]+[\.]?[0-9]*)([a-z])", r"\1*\2", ''.join(blocks))
+                blocks = regex.sub(r"\^", "**", blocks)
+                blocks = regex.sub(r"([0-9])i", r"\1j", blocks)
+                blocks = str_to_np(blocks)
+                ret = lambda z: eval(''.join(blocks))
+        else:
+            err(STRINGS["no_z_in_func"])
     return ret
 
 
@@ -189,5 +201,3 @@ if not args.debug:
         print "f(z) = z"
     if args.time:
         print "Time:\t\t", end - start, "seconds."
-else:
-    print "Debugging"
