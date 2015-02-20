@@ -93,11 +93,25 @@ def dc_contour(grid, sfac):
     return hsv
 
 
-def str_to_np(s):
-    ret = ""
-    if s == "ctan(z)":
-        ret = "(1.0/numpy.tan(z))"
+def bracket_checker(s, offset):
+    ctr = 0
+    ret = -1
+    for i, c in enumerate(s[offset:]):
+        if c == '(':
+            ctr += 1
+        elif c == ')':
+            if ctr == 1:
+                ret = i - 1
+                break
+            ctr -= 1
     return ret
+
+
+def str_to_np(s):
+    repl = {"ctan": [r"ctan\((.{"+str(bracket_checker(s, s.find("ctan")+4))+"})", r"(1.0 / numpy.tan(\1)"]}
+    for key, pattern in repl.iteritems():
+        s = regex.sub(pattern[0], pattern[1], s)
+    return s
 
 
 def function_parser(func):
@@ -105,12 +119,11 @@ def function_parser(func):
     if func:
         blocks = regex.findall(r"([a-z]+\(?)?([\/\-\+])?([0-9]+[\.]?[0-9]*?i?)?([\(]+)?(([\-\+])?([0-9]+([\.][0-9]+)?i?)?[z|0-9][\.]?[0-9]*?i?([\^][0-9]+[\.]?[0-9]*?i?)?)([/)]+)?", func)
         if blocks:
-            print blocks
             blocks = [''.join(b[:8]+b[9:]) for b in blocks]
             blocks = regex.sub(r"([0-9]+[\.]?[0-9]*)([a-z])", r"\1*\2", ''.join(blocks))
-            print blocks
             blocks = regex.sub(r"\^", "**", blocks)
             blocks = regex.sub(r"([0-9])i", r"\1j", blocks)
+            blocks = str_to_np(blocks)
             print blocks
             ret = lambda z: eval(''.join(blocks))
     return ret
