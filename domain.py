@@ -130,17 +130,17 @@ def function_parser(func):
             if bracket_checker(func, 0) == -1:
                 err(STRINGS["imbalanced_brackets"])
         if 'z' in func:
-            blocks = regex.findall(r"([a-z]+\(?)?([\/\-\+])?([0-9]+[\.]?[0-9]*?i?)?([\(]+)?(([\-\+])?([0-9]+([\.][0-9]+)?i?)?[z|0-9][\.]?[0-9]*?i?([\^][0-9]+[\.]?[0-9]*?i?)?)([/)]+)?", func)
+            blocks = regex.findall(r"([a-z]+\(?)?([\/\-\+])?([0-9]+[\.]?[0-9]*?i?)?([\(]+)?(([\-\+])?([0-9]+([\.][0-9]+)?i?)?[i|z|0-9][\.]?[0-9]*?i?([\^][0-9]+[\.]?[0-9]*?i?)?)([/)]+[\^]?)?", func)
             if blocks:
                 blocks = [''.join(b[:8]+b[9:]) for b in blocks]
 
-                blocks = regex.sub(r"([0-9]+[\.]?[0-9]*)([a-z])", r"\1*\2", ''.join(blocks))
+                blocks = regex.sub(r"([z|0-9]+[\.]?[0-9]*)([a-z])", r"\1*\2", ''.join(blocks))
                 blocks = regex.sub(r"\^", "**", blocks)
-                blocks = regex.sub(r"([0-9])i", r"\1j", blocks)
+                blocks = regex.sub(r"([\-0-9])i", r"\1complex(1, 1)", blocks)
 
                 repl = [[reg_func("ctan", blocks), r"(1.0 / numpy.tan(\1)"],
                         [r"pi", r"numpy.pi"],
-                        [reg_func("sin", blocks), r"numpy.sin(\1)"]]
+                        [reg_func("sin", blocks), r"numpy.sin(\1"]]
                 blocks = str_to_np(blocks, repl)
 
                 ret = lambda z: eval(''.join(blocks))
@@ -162,7 +162,7 @@ parser.add_argument('filename', help="Specify the name of the file to write outp
 parser.add_argument('-f', '--func', help="""Use a custom function to plot. Use the letter 'z' as a variable for polynomials.\n
                                             Some terminals may require \"\" marks around more complex functions (i.e. those with
                                             parentheses or other special characters). They are not necessary for all functions
-                                            but are recommended.""")
+                                            but are recommended. Available functions: sin(x), cot(x). Available constants: pi""")
 parser.add_argument('-n', '--nodes', help="Specify the number of nodes in the plotted region (similar to resolution).",
                     type=int)
 parser.add_argument('-c', '--colour', help="Choose a domain colouring method",
@@ -200,8 +200,8 @@ if not args.debug:
     end = time.time()
     print "Generation ended."
     print "Filename:\t", args.filename
-    print "Width:\t\t", str(int(rlen(re, nodes))+"px"
-    print "Height:\t\t", str(int(rlen(im, nodes))+"px"
+    print "Width:\t\t", str(int(rlen(re, nodes)))+"px"
+    print "Height:\t\t", str(int(rlen(im, nodes)))+"px"
     print "Region:\t\t", "Real[", re[0], " -> ", re[1], "]"
     print "\t\t", "Imag[", im[0], " -> ", im[1], "]"
     print "Function:\t",
