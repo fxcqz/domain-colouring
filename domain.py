@@ -113,9 +113,11 @@ def bracket_checker(s, offset):
     return ret
 
 
-def str_to_np(s):
-    repl = [[r"ctan\((.{"+str(bracket_checker(s, s.find("ctan")+4))+"})", r"(1.0 / numpy.tan(\1)"],
-            [ r"pi", r"numpy.pi"]]
+def reg_func(name, s):
+    return r""+name+"\((.{"+str(bracket_checker(s, s.find(name)+len(name)))+"})"
+
+
+def str_to_np(s, repl):
     for pattern in repl:
         s = regex.sub(pattern[0], pattern[1], s)
     return s
@@ -131,10 +133,16 @@ def function_parser(func):
             blocks = regex.findall(r"([a-z]+\(?)?([\/\-\+])?([0-9]+[\.]?[0-9]*?i?)?([\(]+)?(([\-\+])?([0-9]+([\.][0-9]+)?i?)?[z|0-9][\.]?[0-9]*?i?([\^][0-9]+[\.]?[0-9]*?i?)?)([/)]+)?", func)
             if blocks:
                 blocks = [''.join(b[:8]+b[9:]) for b in blocks]
+
                 blocks = regex.sub(r"([0-9]+[\.]?[0-9]*)([a-z])", r"\1*\2", ''.join(blocks))
                 blocks = regex.sub(r"\^", "**", blocks)
                 blocks = regex.sub(r"([0-9])i", r"\1j", blocks)
-                blocks = str_to_np(blocks)
+
+                repl = [[reg_func("ctan", blocks), r"(1.0 / numpy.tan(\1)"],
+                        [r"pi", r"numpy.pi"],
+                        [reg_func("sin", blocks), r"numpy.sin(\1)"]]
+                blocks = str_to_np(blocks, repl)
+
                 ret = lambda z: eval(''.join(blocks))
         else:
             err(STRINGS["no_z_in_func"])
@@ -192,6 +200,8 @@ if not args.debug:
     end = time.time()
     print "Generation ended."
     print "Filename:\t", args.filename
+    print "Width:\t\t", str(int(rlen(re, nodes))+"px"
+    print "Height:\t\t", str(int(rlen(im, nodes))+"px"
     print "Region:\t\t", "Real[", re[0], " -> ", re[1], "]"
     print "\t\t", "Imag[", im[0], " -> ", im[1], "]"
     print "Function:\t",
