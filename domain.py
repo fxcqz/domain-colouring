@@ -75,19 +75,13 @@ def dc_modtrack(grid, sfac):
 def function_parser(func):
     ret = lambda z: z
     if func:
-        parens = regex.findall(r"[\(|\)]", func)
-        if parens:
-            blocks = regex.findall(r"([\/\-\+])?([1-9]+)?([\(])?(([\-\+])?([1-9]+)?[z|1-9]([\^][1-9]+)?)([/)])?", func)
+        blocks = regex.findall(r"([\/\-\+])?([0-9]+[\.]?[0-9]*?i?)?([\(])?(([\-\+])?([0-9]+[\.]?[0-9]*?i?)?[z|0-9][\.]?[0-9]*?i?([\^][0-9]+[\.]?[0-9]*?i?)?)([/)])?", func)
+        if blocks:
             blocks = [''.join(b[:6]+b[7:]) for b in blocks]
             fstr = [regex.sub(r"([1-9]+)(z)", r"\1*\2", n) for n in blocks]
             fstr = [regex.sub(r"\^", "**", n) for n in fstr]
+            fstr = [s.replace("i", "j") for s in fstr]
             ret = lambda z: eval(''.join(fstr))
-        else:
-            polynomial = regex.findall(r"(([\+\-])?([1-9]+)?z([\^][1-9]+)?)", func)
-            if polynomial:
-                fstr = [regex.sub(r"([1-9]+)(z)", r"\1*\2", n[0]) for n in polynomial]
-                fstr = [regex.sub(r"\^", "**", n) for n in fstr]
-                ret = lambda z: eval(''.join(fstr))
     return ret
 
 
