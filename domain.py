@@ -72,16 +72,47 @@ def dc_modtrack(grid, sfac):
     return hsv
 
 
+def perfract(x, t, m, m_):
+    x = x / t
+    return m + (m_ - m) * (x - numpy.floor(x))
+
+
+def dc_contour(grid, sfac):
+    h = compl_h(grid)
+    m = 0.7
+    m_ = 1
+    n = 15
+    isol = perfract(h, 1.0 / n, m, m_)
+    mod = numpy.absolute(grid)
+    logm = numpy.log(mod)
+    logm = numpy.nan_to_num(logm)
+    modc = perfract(logm, 2 * numpy.pi / n, m, m_)
+    v = modc * isol
+    s = sfac * numpy.ones_like(h, float)
+    hsv = numpy.dstack((h,s,v))
+    return hsv
+
+
+def str_to_np(s):
+    ret = ""
+    if s == "ctan(z)":
+        ret = "(1.0/numpy.tan(z))"
+    return ret
+
+
 def function_parser(func):
     ret = lambda z: z
     if func:
-        blocks = regex.findall(r"([\/\-\+])?([0-9]+[\.]?[0-9]*?i?)?([\(])?(([\-\+])?([0-9]+[\.]?[0-9]*?i?)?[z|0-9][\.]?[0-9]*?i?([\^][0-9]+[\.]?[0-9]*?i?)?)([/)])?", func)
+        blocks = regex.findall(r"([a-z]+\(?)?([\/\-\+])?([0-9]+[\.]?[0-9]*?i?)?([\(]+)?(([\-\+])?([0-9]+([\.][0-9]+)?i?)?[z|0-9][\.]?[0-9]*?i?([\^][0-9]+[\.]?[0-9]*?i?)?)([/)]+)?", func)
         if blocks:
-            blocks = [''.join(b[:6]+b[7:]) for b in blocks]
-            fstr = [regex.sub(r"([1-9]+)(z)", r"\1*\2", n) for n in blocks]
-            fstr = [regex.sub(r"\^", "**", n) for n in fstr]
-            fstr = [s.replace("i", "j") for s in fstr]
-            ret = lambda z: eval(''.join(fstr))
+            print blocks
+            blocks = [''.join(b[:8]+b[9:]) for b in blocks]
+            blocks = regex.sub(r"([0-9]+[\.]?[0-9]*)([a-z])", r"\1*\2", ''.join(blocks))
+            print blocks
+            blocks = regex.sub(r"\^", "**", blocks)
+            blocks = regex.sub(r"([0-9])i", r"\1j", blocks)
+            print blocks
+            ret = lambda z: eval(''.join(blocks))
     return ret
 
 
@@ -89,6 +120,8 @@ def colour_arg_parser(col):
     func = dc_modtrack
     if col == "classic":
         func = dc_classic
+    if col == "contour":
+        func = dc_contour
     return func
 ############
 parser = argparse.ArgumentParser(description='Plot some complex numbers!')
@@ -100,7 +133,7 @@ parser.add_argument('-f', '--func', help="""Use a custom function to plot. Use t
 parser.add_argument('-n', '--nodes', help="Specify the number of nodes in the plotted region (similar to resolution).",
                     type=int)
 parser.add_argument('-c', '--colour', help="Choose a domain colouring method",
-                    default="modulus", choices=["classic", "modulus"])
+                    default="modulus", choices=["classic", "modulus", "contour"])
 parser.add_argument('-d', '--debug', help="Debug mode.", action="store_true")
 parser.add_argument('-t', '--time', help="Display the execution time of the program.", action="store_true")
 parser.add_argument('--realmin', help="Minimum value to display on the real axis", type=float, default=-1.0)
