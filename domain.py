@@ -165,7 +165,8 @@ def function_parser(func):
 
                 blocks = regex.sub(r"([z|0-9]+[\.]?[0-9]*)([a-z])", r"\1*\2", ''.join(blocks))
                 blocks = regex.sub(r"\^", "**", blocks)
-                blocks = regex.sub(r"([\-0-9])i", r"\1complex(1, 1)", blocks)
+                blocks = regex.sub(r"\)\(", ")*(", blocks)
+                blocks = regex.sub(r"([\\\*\+\-0-9])i", r"\1complex(1, 1)", blocks)
 
                 blocks = str_to_np(blocks, repl)
 
