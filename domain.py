@@ -118,7 +118,7 @@ def bracket_checker(s, offset):
 def reg_func(name, s):
     if name[0] == '*':
         return r""+name[1:]+""
-    return r"("+name+")(\()(.{"+str(bracket_checker(s, s.find(name)+len(name)))+"})(\))+"
+    return r"("+name+")(\()(.{"+str(bracket_checker(s, s.find(name)+len(name)))+"})(\))"
 
 
 def str_to_np(s, repl):
@@ -142,7 +142,7 @@ def function_parser(func):
                 blocks = regex.sub(r"\^", "**", blocks)
                 blocks = regex.sub(r"([\-0-9])i", r"\1complex(1, 1)", blocks)
 
-                repl = [["ctan", r"(1.0 / numpy.tan(\3))"],
+                repl = [["ctan", r"1.0 / numpy.tan(\3)"],
                         ["sin", r"numpy.sin(\3)"],
                         ["exp", r"numpy.exp(\3)"],
                         ["*pi", r"numpy.pi"]]
