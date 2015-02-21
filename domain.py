@@ -5,9 +5,9 @@ import argparse
 import re as regex
 import time
 
-# h <- (arg(z)/2pi+1) % 1
-# s <- [0, 1]
-# v <- g(|z|)
+
+# what consequences?
+numpy.seterr(all='ignore')
 STRINGS = {"no_z_in_func": "PARSER ERROR: No Z-Value present in user defined function!",
            "imbalanced_brackets": "PARSER ERROR: Bracket mismatch in user defined function!"}
 
@@ -44,6 +44,8 @@ def plot_grid(col, f, imgname, re=[-1.0,1.0], im=[-1.0,1.0], nodes=200, s=0.9):
     pix = img.load()
     for y, j in enumerate(coloured):
         for x, i in enumerate(j):
+            if any(numpy.isnan(i)):
+                i = [numpy.nan_to_num(n) for n in i]
             rgb = colorsys.hsv_to_rgb(i[0], i[1], i[2])
             pix[x, y] = tuple([int(n * 255) for n in rgb])
     img.save(imgname)
@@ -140,8 +142,10 @@ def function_parser(func):
 
                 repl = [[reg_func("ctan", blocks), r"(1.0 / numpy.tan(\3))"],
                         [reg_func("sin", blocks), r"numpy.sin(\3)"],
+                        [reg_func("exp", blocks), r"numpy.exp(\3)"],
                         [r"pi", r"numpy.pi"]]
                 blocks = str_to_np(blocks, repl)
+                print blocks
 
                 ret = lambda z: eval(''.join(blocks))
         else:
