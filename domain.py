@@ -116,16 +116,19 @@ def bracket_checker(s, offset):
 
 
 def reg_func(name, s):
-    if name[0] == '*':
-        return r""+name[1:]+""
-    return r"("+name+")(\()(.{"+str(bracket_checker(s, s.find(name)+len(name)))+"})(\))"
+    if name == 'PI':
+        return r"[^\.]"+name+""
+    return r"([^\.]"+name+")(\()(.{"+str(bracket_checker(s, s.find(name)+len(name)))+"})(\))"
 
 
 def str_to_np(s, repl):
     orig = s
     for pattern in repl:
         if pattern[0] in orig:
-            s = regex.sub(reg_func(pattern[0], s), "("+pattern[1]+")", s)
+            if pattern[0] == 'PI':
+                s = regex.sub(reg_func(pattern[0], s), pattern[1], s)
+            else:
+                s = regex.sub(reg_func(pattern[0], s), "("+pattern[1]+")", s)
             print s
     return s
 
@@ -145,7 +148,7 @@ def function_parser(func):
                 ["cos", r"numpy.cos(\3)"],
                 ["tan", r"numpy.tan(\3)"],
                 ["exp", r"numpy.exp(\3)"],
-                ["*pi", r"numpy.pi"]]
+                ["PI", r"numpy.pi"]]
         if func == "help":
             print "Keywords:"
             print ', '.join([a[0][1:] if a[0][0] == '*' else a[0] for a in repl])
