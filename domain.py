@@ -42,12 +42,19 @@ def plot_grid(col, f, imgname, re=[-1.0,1.0], im=[-1.0,1.0], nodes=200, s=0.9):
     height = int(rlen(im, nodes))
     img = Image.new("RGB", (width, height), "white")
     pix = img.load()
+    total = len(coloured)
+    current = 0
+    pcts = [25.0, 50.0, 75.0, 100.0]
     for y, j in enumerate(coloured):
+        if pcts[0] <= 100.0*(float(current)/float(total)):
+            print str(int(100.0*(float(current)/float(total))))+"% done"
+            pcts.pop(0)
         for x, i in enumerate(j):
             if any(numpy.isnan(i)):
                 i = [numpy.nan_to_num(n) for n in i]
             rgb = colorsys.hsv_to_rgb(i[0], i[1], i[2])
             pix[x, y] = tuple([int(n * 255) for n in rgb])
+        current += 1
     img.save(imgname)
     
 
