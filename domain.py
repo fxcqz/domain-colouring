@@ -122,8 +122,11 @@ def reg_func(name, s):
 
 
 def str_to_np(s, repl):
+    orig = s
     for pattern in repl:
-        s = regex.sub(reg_func(pattern[0], s), pattern[1], s)
+        if pattern[0] in orig:
+            s = regex.sub(reg_func(pattern[0], s), "("+pattern[1]+")", s)
+            print s
     return s
 
 
@@ -133,7 +136,7 @@ def function_parser(func):
         repl = [["ctan", r"1.0 / numpy.tan(\3)"],
                 ["ccos", r"1.0 / numpy.cos(\3)"],
                 ["csin", r"1.0 / numpy.cos(\3)"],
-                ["atan2", r"numpy.arctan2(\3)"],
+                ["atant", r"numpy.arctan2(\3)"],
                 ["arcsin", r"numpy.arcsin(\3)"],
                 ["arccos", r"numpy.arccos(\3)"],
                 ["arctan", r"numpy.arctan(\3)"],
