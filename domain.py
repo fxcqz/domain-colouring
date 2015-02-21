@@ -130,6 +130,23 @@ def str_to_np(s, repl):
 def function_parser(func):
     ret = lambda z: z
     if func:
+        repl = [["ctan", r"1.0 / numpy.tan(\3)"],
+                ["ccos", r"1.0 / numpy.cos(\3)"],
+                ["csin", r"1.0 / numpy.cos(\3)"],
+                ["atan2", r"numpy.arctan2(\3)"],
+                ["arcsin", r"numpy.arcsin(\3)"],
+                ["arccos", r"numpy.arccos(\3)"],
+                ["arctan", r"numpy.arctan(\3)"],
+                ["abs", r"numpy.absolute(\3)"],
+                ["sin", r"numpy.sin(\3)"],
+                ["cos", r"numpy.cos(\3)"],
+                ["tan", r"numpy.tan(\3)"],
+                ["exp", r"numpy.exp(\3)"],
+                ["*pi", r"numpy.pi"]]
+        if func == "help":
+            print "Keywords:"
+            print ', '.join([a[0][1:] if a[0][0] == '*' else a[0] for a in repl])
+            exit()
         if '(' in func or ')' in func:
             if bracket_checker(func, 0) == -1:
                 err(STRINGS["imbalanced_brackets"])
@@ -142,10 +159,6 @@ def function_parser(func):
                 blocks = regex.sub(r"\^", "**", blocks)
                 blocks = regex.sub(r"([\-0-9])i", r"\1complex(1, 1)", blocks)
 
-                repl = [["ctan", r"1.0 / numpy.tan(\3)"],
-                        ["sin", r"numpy.sin(\3)"],
-                        ["exp", r"numpy.exp(\3)"],
-                        ["*pi", r"numpy.pi"]]
                 blocks = str_to_np(blocks, repl)
 
                 ret = lambda z: eval(''.join(blocks))
@@ -167,7 +180,7 @@ parser.add_argument('filename', help="Specify the name of the file to write outp
 parser.add_argument('-f', '--func', help="""Use a custom function to plot. Use the letter 'z' as a variable for polynomials.\n
                                             Some terminals may require \"\" marks around more complex functions (i.e. those with
                                             parentheses or other special characters). They are not necessary for all functions
-                                            but are recommended. Available functions: sin(x), cot(x). Available constants: pi""")
+                                            but are recommended.""")
 parser.add_argument('-n', '--nodes', help="Specify the number of nodes in the plotted region (similar to resolution).",
                     type=int)
 parser.add_argument('-c', '--colour', help="Choose a domain colouring method",
