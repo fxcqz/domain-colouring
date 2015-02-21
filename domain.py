@@ -116,12 +116,14 @@ def bracket_checker(s, offset):
 
 
 def reg_func(name, s):
-    return r"("+name+")(\()(.{"+str(bracket_checker(s, s.find(name)+len(name)))+"})(\))"
+    if name[0] == '*':
+        return r""+name[1:]+""
+    return r"("+name+")(\()(.{"+str(bracket_checker(s, s.find(name)+len(name)))+"})(\))+"
 
 
 def str_to_np(s, repl):
     for pattern in repl:
-        s = regex.sub(pattern[0], pattern[1], s)
+        s = regex.sub(reg_func(pattern[0], s), pattern[1], s)
     return s
 
 
@@ -140,12 +142,11 @@ def function_parser(func):
                 blocks = regex.sub(r"\^", "**", blocks)
                 blocks = regex.sub(r"([\-0-9])i", r"\1complex(1, 1)", blocks)
 
-                repl = [[reg_func("ctan", blocks), r"(1.0 / numpy.tan(\3))"],
-                        [reg_func("sin", blocks), r"numpy.sin(\3)"],
-                        [reg_func("exp", blocks), r"numpy.exp(\3)"],
-                        [r"pi", r"numpy.pi"]]
+                repl = [["ctan", r"(1.0 / numpy.tan(\3))"],
+                        ["sin", r"numpy.sin(\3)"],
+                        ["exp", r"numpy.exp(\3)"],
+                        ["*pi", r"numpy.pi"]]
                 blocks = str_to_np(blocks, repl)
-                print blocks
 
                 ret = lambda z: eval(''.join(blocks))
         else:
