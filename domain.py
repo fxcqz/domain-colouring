@@ -114,7 +114,7 @@ def bracket_checker(s, offset):
 
 
 def reg_func(name, s):
-    return r""+name+"\((.{"+str(bracket_checker(s, s.find(name)+len(name)))+"})"
+    return r"("+name+")(\()(.{"+str(bracket_checker(s, s.find(name)+len(name)))+"})(\))"
 
 
 def str_to_np(s, repl):
@@ -130,7 +130,7 @@ def function_parser(func):
             if bracket_checker(func, 0) == -1:
                 err(STRINGS["imbalanced_brackets"])
         if 'z' in func:
-            blocks = regex.findall(r"([a-z]+\(?)?([\/\-\+])?([0-9]+[\.]?[0-9]*?i?)?([\(]+)?(([\-\+])?([0-9]+([\.][0-9]+)?i?)?[i|z|0-9][\.]?[0-9]*?i?([\^][0-9]+[\.]?[0-9]*?i?)?)([/)]+[\^]?)?", func)
+            blocks = regex.findall(r"([a-z]+\(?)?([\/\-\+\*])?([0-9]+[\.]?[0-9]*?i?)?([\(]+)?(([\-\+\\\*])?([0-9]+([\.][0-9]+)?i?)?[pi|i|z|0-9][\.]?[0-9]*?i?([\^][0-9]+[\.]?[0-9]*?i?)?)([/)]+[\^]?)?", func)
             if blocks:
                 blocks = [''.join(b[:8]+b[9:]) for b in blocks]
 
@@ -138,9 +138,9 @@ def function_parser(func):
                 blocks = regex.sub(r"\^", "**", blocks)
                 blocks = regex.sub(r"([\-0-9])i", r"\1complex(1, 1)", blocks)
 
-                repl = [[reg_func("ctan", blocks), r"(1.0 / numpy.tan(\1)"],
-                        [r"pi", r"numpy.pi"],
-                        [reg_func("sin", blocks), r"numpy.sin(\1"]]
+                repl = [[reg_func("ctan", blocks), r"(1.0 / numpy.tan(\3))"],
+                        [reg_func("sin", blocks), r"numpy.sin(\3)"],
+                        [r"pi", r"numpy.pi"]]
                 blocks = str_to_np(blocks, repl)
 
                 ret = lambda z: eval(''.join(blocks))
